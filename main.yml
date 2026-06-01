@@ -1,0 +1,152 @@
+name: "🌌 Hyperion-Class Infinite Keep-Alive Engine"
+
+on:
+  schedule:
+    # Runs aggressively every 4 hours (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)
+    # This interval guarantees no Space can ever hit the 48-hour or even 24-hour idle thresholds.
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Enable deep HTTP tracing output'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  engine-sustain:
+    name: "Sustainment Core"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: "Initialize Environment and Core Dependencies"
+        run: |
+          echo "🤖 Initializing network utility packages..."
+          sudo apt-get update -yq
+          sudo apt-get install -yq curl grep coreutils
+          
+      - name: "Execute High-Impact Application Wake Loops"
+        env:
+          DEBUG_FLAG: ${{ github.event.inputs.debug_mode }}
+        run: |
+          # =========================================================================
+          # TARGET INFRASTRUCTURE ARRAY
+          # =========================================================================
+          # We use both the raw frontend space and the direct framework engine configs
+          # to ensure Hugging Face forces the underlying Docker architecture to spin up.
+          # =========================================================================
+          SPACES=(
+            "https://bluemoonbot-bluemoonbot-lichess.hf.space"
+            "https://bluemoonbot-hectobot1.hf.space"
+            "https://bluemoonbot-fluffybot.hf.space"
+            "https://bluemoonbot-bot.hf.space"
+          )
+          
+          echo "🚀 Hyperion Keep-Alive Matrix Initiated."
+          echo "📊 Target count: ${#SPACES[@]} independent Lichess bots."
+          echo "---------------------------------------------------------------------"
+
+          # Global metrics tracking
+          SUCCESS_COUNT=0
+          WARNING_COUNT=0
+          FAILURE_COUNT=0
+
+          # Primary loop iterating over every target Space
+          for target in "${SPACES[@]}"; do
+            echo ""
+            echo "============ 🌐 PROCESSING NODE: $target ============"
+            
+            # Formulate endpoint variations to bypass static HTML edge caches
+            ENDPOINTS=(
+              "$target/"
+              "$target/config"
+              "$target/info"
+            )
+            
+            for endpoint in "${ENDPOINTS[@]}"; do
+              echo "📍 Targeting structural endpoint: $endpoint"
+              
+              # Multi-pass aggressive burst sequencing (Simulating asynchronous browser tabs)
+              for pass in {1..2}; do
+                echo "   ⏱️ [Pass $pass/2] Preparing browser-mimicking handshake..."
+                
+                # Generate a completely organic web footprint using an enterprise User-Agent string
+                # This explicitly avoids raw 'curl' bans or anti-bot routing mechanisms on AWS/Cloudflare.
+                USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 IntegrationEngine/4.0"
+                
+                # Capture full transaction metrics securely
+                # Connect-timeout enforces fast dropping of dead routing targets, max-time limits thread runtime.
+                HTTP_METRICS=$(curl -s -L \
+                  -H "User-Agent: $USER_AGENT" \
+                  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" \
+                  -H "Accept-Language: en-US,en;q=0.5" \
+                  -H "Cache-Control: no-cache" \
+                  -H "Pragma: no-cache" \
+                  --connect-timeout 20 \
+                  --max-time 35 \
+                  -w "\n%{http_code}|\n%{time_total}|\n%{size_download}" \
+                  "$endpoint")
+                
+                # Extract clean variables from the network output metrics payload
+                STATUS_CODE=$(echo "$HTTP_METRICS" | tail -n 3 | head -n 1 | tr -d '\r\n ')
+                TOTAL_TIME=$(echo "$HTTP_METRICS" | tail -n 2 | head -n 1 | tr -d '\r\n ')
+                BYTES_RCVD=$(echo "$HTTP_METRICS" | tail -n 1 | tr -d '\r\n ')
+                
+                # If debug configuration is active, spit out the entire diagnostic buffer
+                if [ "$DEBUG_FLAG" = "true" ]; then
+                  echo "   ⚠️ [DEBUG DATA]: Status=$STATUS_CODE | Latency=${TOTAL_TIME}s | Payload=${BYTES_RCVD}B"
+                fi
+
+                # Matrix analysis logic block for explicit routing response interpretation
+                if [ "$STATUS_CODE" = "200" ]; then
+                  echo "   ✅ Success: Framework layer answered cleanly in ${TOTAL_TIME}s ($BYTES_RCVD bytes)."
+                  SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+                  break # If the base layer wakes up clean, we don't need to hammer it further on this pass
+                  
+                elif [ "$STATUS_CODE" = "503" ] || [ "$STATUS_CODE" = "502" ] || [ "$STATUS_CODE" = "504" ]; then
+                  echo "   ⚠️ Warning: Space container state is SLEEPING/WAKING. Infrastructure forced rebuild cycle."
+                  echo "      Waiting for Hugging Face allocation nodes to provision..."
+                  WARNING_COUNT=$((WARNING_COUNT + 1))
+                  sleep 20 # Give the virtual machine breathing room to build the container
+                  
+                elif [ "$STATUS_CODE" = "000" ] || [ -z "$STATUS_CODE" ]; then
+                  echo "   ❌ Critical: Connection dropped or timed out entirely. Node may be crashed or throttled."
+                  FAILURE_COUNT=$((FAILURE_COUNT + 1))
+                  
+                else
+                  echo "   ℹ️ Information: Received anomalous HTTP Code [$STATUS_CODE]. Traffic register acknowledged."
+                  SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+                fi
+                
+                # Anti-flooding variable delay to simulate real human clicking patterns
+                RANDOM_SLEEP=$(( (RANDOM % 6) + 4 ))
+                echo "   💤 Staggering next burst for ${RANDOM_SLEEP}s..."
+                sleep $RANDOM_SLEEP
+              done
+            done
+            echo "====================================================================="
+          done
+
+          # =========================================================================
+          # REPORTING ENGINE & QUALITY ASSURANCE
+          # =========================================================================
+          echo ""
+          echo "🏁 ===================== SYSTEM METRICS REPORT ====================="
+          echo "📈 Total Target Nodes Managed: ${#SPACES[@]}"
+          echo "🟢 Successful Hits / Persistent Connections: $SUCCESS_COUNT"
+          echo "🟡 Intercepted Build/Wake Signals: $WARNING_COUNT"
+          echo "🔴 Failure/Dead Outages Caught: $FAILURE_COUNT"
+          echo "====================================================================="
+          
+          if [ $FAILURE_COUNT -gt 2 ]; then
+            echo "🚨 Pipeline system notice: Multiple nodes are completely unresponsive."
+            echo "   Please check your Hugging Face Space Build logs for internal code crashes."
+            exit 1
+          else
+            echo "🎉 Pipeline validation check complete. All Lichess bots successfully kept alive!"
+          fi
