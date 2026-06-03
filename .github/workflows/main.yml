@@ -14,7 +14,7 @@ on:
         type: boolean
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -24,13 +24,16 @@ jobs:
     timeout-minutes: 15
     
     steps:
+      - name: "Checkout Repository Architecture"
+        uses: actions/checkout@v4
+
       - name: "Initialize Environment and Core Dependencies"
         run: |
           echo "🤖 Initializing network utility packages..."
           sudo apt-get update -yq
           sudo apt-get install -yq curl grep coreutils
           
-      - name: "Execute High-Impact Application Wake Loops"
+      - name: "Execute High-Impact Application Wake Loops & Self-Sustainment"
         env:
           DEBUG_FLAG: ${{ github.event.inputs.debug_mode }}
         run: |
@@ -143,6 +146,29 @@ jobs:
           echo "🔴 Failure/Dead Outages Caught: $FAILURE_COUNT"
           echo "====================================================================="
           
+          # =========================================================================
+          # SELF-SUSTAINMENT ENGINE (Resets GitHub's 60-Day Inactivity Clock)
+          # =========================================================================
+          echo ""
+          echo "🔄 Initiating GitHub Self-Sustainment Cycle..."
+          
+          # Configure the local git instance to use GitHub's official bot identity
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Write a small timestamp matrix update to a local tracking file
+          echo "Hyperion Core Keep-Alive Pulse: $(date -u)" > hyperion_pulse.txt
+          
+          # Safely stage, commit, and push back to GitHub without loop triggers
+          git add hyperion_pulse.txt
+          if git commit -m "chore(engine): sustainment pulse [skip ci]" --allow-empty; then
+            git push
+            echo "🌌 Pulse pushed successfully. GitHub inactivity timer has been reset!"
+          else
+            echo "⚠️ Commit skipped or failed. Check configurations."
+          fi
+
+          # Final verification safety exit
           if [ $FAILURE_COUNT -gt 2 ]; then
             echo "🚨 Pipeline system notice: Multiple nodes are completely unresponsive."
             echo "   Please check your Hugging Face Space Build logs for internal code crashes."
