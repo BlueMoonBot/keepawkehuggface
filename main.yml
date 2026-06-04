@@ -14,7 +14,7 @@ on:
         type: boolean
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -30,6 +30,12 @@ jobs:
           sudo apt-get update -yq
           sudo apt-get install -yq curl grep coreutils
           
+      - name: "Checkout Repository Architecture"
+        uses: actions/checkout@v4
+        with:
+          # Securely injects the HUMAN_TOKEN from your repository settings
+          token: ${{ secrets.HUMAN_TOKEN }}
+
       - name: "Execute High-Impact Application Wake Loops"
         env:
           DEBUG_FLAG: ${{ github.event.inputs.debug_mode }}
@@ -73,7 +79,7 @@ jobs:
               
               # Multi-pass aggressive burst sequencing (Simulating asynchronous browser tabs)
               for pass in {1..2}; do
-                echo "   ⏱️ [Pass $pass/2] Preparing browser-mimicking handshake..."
+                echo "    ⏱️ [Pass $pass/2] Preparing browser-mimicking handshake..."
                 
                 # Generate a completely organic web footprint using an enterprise User-Agent string
                 # This explicitly avoids raw 'curl' bans or anti-bot routing mechanisms on AWS/Cloudflare.
@@ -99,33 +105,33 @@ jobs:
                 
                 # If debug configuration is active, spit out the entire diagnostic buffer
                 if [ "$DEBUG_FLAG" = "true" ]; then
-                  echo "   ⚠️ [DEBUG DATA]: Status=$STATUS_CODE | Latency=${TOTAL_TIME}s | Payload=${BYTES_RCVD}B"
+                  echo "    ⚠️ [DEBUG DATA]: Status=$STATUS_CODE | Latency=${TOTAL_TIME}s | Payload=${BYTES_RCVD}B"
                 fi
 
                 # Matrix analysis logic block for explicit routing response interpretation
                 if [ "$STATUS_CODE" = "200" ]; then
-                  echo "   ✅ Success: Framework layer answered cleanly in ${TOTAL_TIME}s ($BYTES_RCVD bytes)."
+                  echo "    ✅ Success: Framework layer answered cleanly in ${TOTAL_TIME}s ($BYTES_RCVD bytes)."
                   SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
                   break # If the base layer wakes up clean, we don't need to hammer it further on this pass
                   
                 elif [ "$STATUS_CODE" = "503" ] || [ "$STATUS_CODE" = "502" ] || [ "$STATUS_CODE" = "504" ]; then
-                  echo "   ⚠️ Warning: Space container state is SLEEPING/WAKING. Infrastructure forced rebuild cycle."
-                  echo "      Waiting for Hugging Face allocation nodes to provision..."
+                  echo "    ⚠️ Warning: Space container state is SLEEPING/WAKING. Infrastructure forced rebuild cycle."
+                  echo "       Waiting for Hugging Face allocation nodes to provision..."
                   WARNING_COUNT=$((WARNING_COUNT + 1))
                   sleep 20 # Give the virtual machine breathing room to build the container
                   
                 elif [ "$STATUS_CODE" = "000" ] || [ -z "$STATUS_CODE" ]; then
-                  echo "   ❌ Critical: Connection dropped or timed out entirely. Node may be crashed or throttled."
+                  echo "    ❌ Critical: Connection dropped or timed out entirely. Node may be crashed or throttled."
                   FAILURE_COUNT=$((FAILURE_COUNT + 1))
                   
                 else
-                  echo "   ℹ️ Information: Received anomalous HTTP Code [$STATUS_CODE]. Traffic register acknowledged."
+                  echo "    ℹ️ Information: Received anomalous HTTP Code [$STATUS_CODE]. Traffic register acknowledged."
                   SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
                 fi
                 
                 # Anti-flooding variable delay to simulate real human clicking patterns
                 RANDOM_SLEEP=$(( (RANDOM % 6) + 4 ))
-                echo "   💤 Staggering next burst for ${RANDOM_SLEEP}s..."
+                echo "    💤 Staggering next burst for ${RANDOM_SLEEP}s..."
                 sleep $RANDOM_SLEEP
               done
             done
@@ -149,4 +155,26 @@ jobs:
             exit 1
           else
             echo "🎉 Pipeline validation check complete. All Lichess bots successfully kept alive!"
+          fi
+
+      # =========================================================================
+      # SELF-SUSTAINMENT MODULE (Resets GitHub's 60-Day Inactivity Clock)
+      # =========================================================================
+      - name: "GitHub Self-Sustainment Cycle"
+        run: |
+          echo ""
+          echo "🔄 Initiating GitHub Self-Sustainment Cycle..."
+          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          echo "Lichess Bots Keep-Alive Pulse: $(date -u)" > bot_pulse.txt
+          
+          git add bot_pulse.txt
+          if git commit -m "chore(keepalive): sustainment pulse [skip ci]" --allow-empty; then
+            # Pushes updates back using the token variable safely to bypass the 60-day rule
+            git push "https://x-access-token:${{ secrets.HUMAN_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
+            echo "🌌 Pulse pushed successfully via Human Token. GitHub inactivity timer has been reset!"
+          else
+            echo "⚠️ Commit skipped or failed."
           fi
