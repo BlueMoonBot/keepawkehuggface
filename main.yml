@@ -17,6 +17,10 @@ permissions:
   contents: write
   actions: write
 
+# This explicitly forces the runner environment to use Node.js 24 and suppresses the deprecation warning
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   engine-sustain:
     name: "Sustainment Core"
@@ -74,7 +78,7 @@ jobs:
               
               # Multi-pass aggressive burst sequencing (Simulating asynchronous browser tabs)
               for pass in {1..2}; do
-                echo "   ⏱️ [Pass $pass/2] Preparing browser-mimicking handshake..."
+                echo "    ⏱️ [Pass $pass/2] Preparing browser-mimicking handshake..."
                 
                 # Generate a completely organic web footprint using an enterprise User-Agent string
                 # This explicitly avoids raw 'curl' bans or anti-bot routing mechanisms on AWS/Cloudflare.
@@ -111,7 +115,7 @@ jobs:
                   
                 elif [ "$STATUS_CODE" = "503" ] || [ "$STATUS_CODE" = "502" ] || [ "$STATUS_CODE" = "504" ]; then
                   echo "    ⚠️ Warning: Space container state is SLEEPING/WAKING. Infrastructure forced rebuild cycle."
-                  echo "       Waiting for Hugging Face allocation nodes to provision..."
+                  echo "        Waiting for Hugging Face allocation nodes to provision..."
                   WARNING_COUNT=$((WARNING_COUNT + 1))
                   sleep 20 # Give the virtual machine breathing room to build the container
                   
@@ -146,7 +150,7 @@ jobs:
           
           if [ $FAILURE_COUNT -gt 2 ]; then
             echo "🚨 Pipeline system notice: Multiple nodes are completely unresponsive."
-            echo "   Please check your Hugging Face Space Build logs for internal code crashes."
+            echo "    Please check your Hugging Face Space Build logs for internal code crashes."
             exit 1
           else
             echo "🎉 Pipeline validation check complete. All Lichess bots successfully kept alive!"
